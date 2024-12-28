@@ -10,9 +10,10 @@ import (
 func main() {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/{$}", home)
-	mux.HandleFunc("/snippet/view/{id}", snippetView)
-	mux.HandleFunc("/snippet/create", snippetCreate)
+	mux.HandleFunc("GET /{$}", home)
+	mux.HandleFunc("GET /snippet/view/{id}", snippetView)
+	mux.HandleFunc("GET /snippet/create", snippetCreate)
+	mux.HandleFunc("POST /snippet/createPost", snippetCreatePost)
 
 	log.Print("Starting server on port: 4000")
 
@@ -35,5 +36,10 @@ func snippetView(w http.ResponseWriter, r *http.Request) {
 }
 
 func snippetCreate(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Display form to create snippet"))
+}
+
+func snippetCreatePost(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(201)
 	w.Write([]byte("Creating snippet"))
 }
