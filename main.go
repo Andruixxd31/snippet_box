@@ -22,7 +22,8 @@ func main() {
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello World!"))
+	w.Header().Add("Server", "Go")
+	fmt.Fprintf(w, "Hello World!")
 }
 
 func snippetView(w http.ResponseWriter, r *http.Request) {
@@ -31,15 +32,15 @@ func snippetView(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	msg := fmt.Sprintf("Display snippet with id of %d", id)
-	w.Write([]byte(msg))
+	fmt.Fprintf(w, "Display snippet with id of %d", id)
 }
 
 func snippetCreate(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Display form to create snippet"))
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(w, `{"Message":"Display form to create snippet"}`)
 }
 
 func snippetCreatePost(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(201)
-	w.Write([]byte("Creating snippet"))
+	w.WriteHeader(http.StatusCreated)
+	fmt.Fprintf(w, "Creating new snippet")
 }
