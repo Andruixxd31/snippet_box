@@ -3,10 +3,19 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Print("Error loading .env file")
+	}
+	addr := os.Getenv("ADDR")
+
 	mux := http.NewServeMux()
 
 	fileServer := http.FileServer(neuteredFileSystem{http.Dir("./ui/static")})
@@ -18,9 +27,9 @@ func main() {
 	mux.HandleFunc("GET /snippet/create", snippetCreate)
 	mux.HandleFunc("POST /snippet/createPost", snippetCreatePost)
 
-	log.Print("Starting server on port: 4000")
+	log.Printf("Starting server on port: %s", addr)
 
-	err := http.ListenAndServe(":4000", mux)
+	err = http.ListenAndServe(addr, mux)
 	log.Fatal(err)
 }
 
