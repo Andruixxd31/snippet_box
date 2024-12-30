@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -16,6 +17,10 @@ func main() {
 	}
 	addr := os.Getenv("ADDR")
 
+	// loggerHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{})
+	// logger := slog.New(loggerHandler)
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
 	mux := http.NewServeMux()
 
 	fileServer := http.FileServer(neuteredFileSystem{http.Dir("./ui/static")})
@@ -27,10 +32,11 @@ func main() {
 	mux.HandleFunc("GET /snippet/create", snippetCreate)
 	mux.HandleFunc("POST /snippet/createPost", snippetCreatePost)
 
-	log.Printf("Starting server on port: %s", addr)
+	logger.Info("starting server", "addr", addr)
 
 	err = http.ListenAndServe(addr, mux)
-	log.Fatal(err)
+	logger.Error(err.Error())
+	os.Exit(1)
 }
 
 type neuteredFileSystem struct {
