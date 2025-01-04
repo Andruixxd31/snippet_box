@@ -10,6 +10,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type application struct {
+	logger *slog.Logger
+}
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -17,20 +21,22 @@ func main() {
 	}
 	addr := os.Getenv("ADDR")
 
-	// loggerHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{})
-	// logger := slog.New(loggerHandler)
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	mux := http.NewServeMux()
+
+	app := &application{
+		logger: logger,
+	}
 
 	fileServer := http.FileServer(neuteredFileSystem{http.Dir("./ui/static")})
 	mux.Handle("/static", http.NotFoundHandler())
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
-	mux.HandleFunc("GET /{$}", home)
-	mux.HandleFunc("GET /snippet/view/{id}", snippetView)
-	mux.HandleFunc("GET /snippet/create", snippetCreate)
-	mux.HandleFunc("POST /snippet/createPost", snippetCreatePost)
+	mux.HandleFunc("GET /{$}", app.home)
+	mux.HandleFunc("GET /snippet/view/{id}", app.snippetView)
+	mux.HandleFunc("GET /snippet/create", app.snippetCreate)
+	mux.HandleFunc("POST /snippet/createPost", app.snippetCreatePost)
 
 	logger.Info("starting server", "addr", addr)
 
