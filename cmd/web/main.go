@@ -23,24 +23,13 @@ func main() {
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
-	mux := http.NewServeMux()
-
 	app := &application{
 		logger: logger,
 	}
 
-	fileServer := http.FileServer(neuteredFileSystem{http.Dir("./ui/static")})
-	mux.Handle("/static", http.NotFoundHandler())
-	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
-
-	mux.HandleFunc("GET /{$}", app.home)
-	mux.HandleFunc("GET /snippet/view/{id}", app.snippetView)
-	mux.HandleFunc("GET /snippet/create", app.snippetCreate)
-	mux.HandleFunc("POST /snippet/createPost", app.snippetCreatePost)
-
 	logger.Info("starting server", "addr", addr)
 
-	err = http.ListenAndServe(addr, mux)
+	err = http.ListenAndServe(addr, app.routes())
 	logger.Error(err.Error())
 	os.Exit(1)
 }
