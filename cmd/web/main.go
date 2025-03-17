@@ -9,12 +9,13 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/andruixxd31/snippet-box/internal/models"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 type application struct {
-	logger *slog.Logger
-	db     *sql.DB
+	logger   *slog.Logger
+	snippets *models.SnippetModel
 }
 
 func main() {
@@ -35,8 +36,8 @@ func main() {
 	mux := http.NewServeMux()
 
 	app := &application{
-		logger: logger,
-		db:     db,
+		logger:   logger,
+		snippets: &models.SnippetModel{DB: db},
 	}
 
 	fileServer := http.FileServer(neuteredFileSystem{http.Dir("./ui/static")})
