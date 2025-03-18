@@ -1,32 +1,43 @@
 package main
 
 import (
+	"database/sql"
+	"flag"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
 
-	"github.com/joho/godotenv"
+	"github.com/andruixxd31/snippet-box/internal/models"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type application struct {
-	logger *slog.Logger
+	logger   *slog.Logger
+	snippets *models.SnippetModel
 }
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Print("Error loading .env file")
-	}
-	addr := os.Getenv("ADDR")
+	addr := flag.String("addr", ":4000", "HTTP network address")
+	dsn := flag.String("dsn", "andres:xiuxiu@/snippetbox?parseTime=true", "Mysql data source name")
+	flag.Parse()
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
+	db, err := openDB(*dsn)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
+	defer db.Close()
 
 	mux := http.NewServeMux()
 
 	app := &application{
-		logger: logger,
+		logger:   logger,
+		snippets: &models.SnippetModel{DB: db},
 	}
 
 	fileServer := http.FileServer(neuteredFileSystem{http.Dir("./ui/static")})
@@ -38,9 +49,9 @@ func main() {
 	mux.HandleFunc("GET /snippet/create", app.snippetCreate)
 	mux.HandleFunc("POST /snippet/createPost", app.snippetCreatePost)
 
-	logger.Info("starting server", "addr", addr)
+	logger.Info("starting server", "addr", *addr)
 
-	err = http.ListenAndServe(addr, mux)
+	err = http.ListenAndServe(*addr, mux)
 	logger.Error(err.Error())
 	os.Exit(1)
 }
@@ -78,4 +89,19 @@ func (nfs neuteredFileSystem) Open(path string) (http.File, error) {
 	}
 
 	return f, nil
+}
+
+func openDB(dsn string) (*sql.DB, error) {
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping()
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+
+	return db, nil
 }
