@@ -64,3 +64,24 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 	// w.WriteHeader(http.StatusCreated)
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 }
+
+func (app *application) snippetDelete(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || id < 1 {
+		http.NotFound(w, r)
+		return
+	}
+
+	snippet, err := app.snippets.Delete(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			http.NotFound(w, r)
+			return
+		} else {
+			app.serverError(w, r, err)
+			return
+		}
+	}
+
+	fmt.Fprintf(w, "Deleted snippet: %v+", snippet)
+}

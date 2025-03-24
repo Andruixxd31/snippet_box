@@ -57,6 +57,7 @@ func main() {
 	mux.HandleFunc("GET /snippet/view/{id}", app.snippetView)
 	mux.HandleFunc("GET /snippet/create", app.snippetCreate)
 	mux.HandleFunc("POST /snippet/createPost", app.snippetCreatePost)
+	mux.HandleFunc("DELETE /snippet/delete/{id}", app.snippetDelete)
 
 	logger.Info("starting server", "addr", *addr)
 
