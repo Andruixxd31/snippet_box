@@ -83,7 +83,7 @@ func (m *SnippetModel) Delete(id int) (Snippet, error) {
 
 	snippet, err := m.Get(id)
 	if err != nil {
-		return Snippet{}, nil
+		return Snippet{}, err
 	}
 
 	_, err = m.DB.Exec(stmt, id)
