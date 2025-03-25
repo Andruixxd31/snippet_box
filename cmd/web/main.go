@@ -20,6 +20,10 @@ type application struct {
 	templateCache map[string]*template.Template
 }
 
+type neuteredFileSystem struct {
+	fs http.FileSystem
+}
+
 func main() {
 	addr := flag.String("addr", ":4000", "HTTP network address")
 	dsn := flag.String("dsn", "andres:xiuxiu@/snippetbox?parseTime=true", "Mysql data source name")
@@ -41,33 +45,32 @@ func main() {
 		os.Exit(1)
 	}
 
-	mux := http.NewServeMux()
-
 	app := &application{
 		logger:        logger,
 		snippets:      &models.SnippetModel{DB: db},
 		templateCache: templateCache,
 	}
 
-	fileServer := http.FileServer(neuteredFileSystem{http.Dir("./ui/static")})
-	mux.Handle("/static", http.NotFoundHandler())
-	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
-
-	mux.HandleFunc("GET /{$}", app.home)
-	mux.HandleFunc("GET /snippet/view/{id}", app.snippetView)
-	mux.HandleFunc("GET /snippet/create", app.snippetCreate)
-	mux.HandleFunc("POST /snippet/createPost", app.snippetCreatePost)
-	mux.HandleFunc("DELETE /snippet/delete/{id}", app.snippetDelete)
-
 	logger.Info("starting server", "addr", *addr)
 
-	err = http.ListenAndServe(*addr, mux)
+	err = http.ListenAndServe(*addr, app.routes())
 	logger.Error(err.Error())
 	os.Exit(1)
 }
 
-type neuteredFileSystem struct {
-	fs http.FileSystem
+func openDB(dsn string) (*sql.DB, error) {
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping()
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+
+	return db, nil
 }
 
 func (nfs neuteredFileSystem) Open(path string) (http.File, error) {
@@ -99,19 +102,4 @@ func (nfs neuteredFileSystem) Open(path string) (http.File, error) {
 	}
 
 	return f, nil
-}
-
-func openDB(dsn string) (*sql.DB, error) {
-	db, err := sql.Open("mysql", dsn)
-	if err != nil {
-		return nil, err
-	}
-
-	err = db.Ping()
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
-
-	return db, nil
 }
