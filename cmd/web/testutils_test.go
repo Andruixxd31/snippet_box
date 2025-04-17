@@ -29,6 +29,9 @@ func newTestServer(t *testing.T, h http.Handler) *testServer {
 
 	ts.Client().Jar = jar
 
+	ts.Client().CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
 	return &testServer{ts}
 }
 
