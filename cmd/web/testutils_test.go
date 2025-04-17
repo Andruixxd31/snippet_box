@@ -4,6 +4,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/http/cookiejar"
 	"net/http/httptest"
 	"testing"
 )
@@ -20,6 +21,14 @@ func newTestApplication(t *testing.T) *application {
 
 func newTestServer(t *testing.T, h http.Handler) *testServer {
 	ts := httptest.NewTLSServer(h)
+
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ts.Client().Jar = jar
+
 	return &testServer{ts}
 }
 
