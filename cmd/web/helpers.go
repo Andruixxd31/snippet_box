@@ -13,6 +13,7 @@ func (app *application) serverError(w http.ResponseWriter, r *http.Request, err 
 	method := r.Method
 	uri := r.URL.RequestURI()
 
+	fmt.Printf("SERVER ERROR: %v\n", err) // Add this
 	app.logger.Error(err.Error(), "method", method, "uri", uri)
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
