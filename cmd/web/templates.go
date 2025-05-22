@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/andruixxd31/snippet-box/internal/models"
@@ -32,8 +34,12 @@ func humanDate(t time.Time) string {
 
 func newTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
+	_, b, _, _ := runtime.Caller(0)
+	basepath := filepath.Join(filepath.Dir(b), "..", "..")
+	templatesPath := filepath.Join(basepath, "ui", "html", "pages", "*.tmpl")
 
-	pages, err := filepath.Glob("./ui/html/pages/*.tmpl")
+	fmt.Println(templatesPath)
+	pages, err := filepath.Glob(templatesPath)
 	if err != nil {
 		return nil, err
 	}
@@ -41,12 +47,14 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	for _, page := range pages {
 		name := filepath.Base(page)
 
-		ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.tmpl")
+		baseFilePath := filepath.Join(basepath, "ui", "html", "base.tmpl")
+		ts, err := template.New(name).Funcs(functions).ParseFiles(baseFilePath)
 		if err != nil {
 			return nil, err
 		}
 
-		ts, err = ts.ParseGlob("./ui/html/partials/*.tmpl")
+		partialsPath := filepath.Join(basepath, "ui", "html", "partials", "*.tmpl")
+		ts, err = ts.ParseGlob(partialsPath)
 		if err != nil {
 			return nil, err
 		}
