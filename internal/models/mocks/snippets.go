@@ -1,7 +1,6 @@
 package mocks
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/andruixxd31/snippet-box/internal/models"
